@@ -13,11 +13,19 @@ Uso:
 import requests
 import random
 import time
+import os
 
 # Troque pela URL do seu servidor (local ou já no Render)
-API_URL = "http://localhost:5000/dados"
+#API_URL = "http://localhost:5000/dados"
+API_URL = "https://bio-digestor-medidor.onrender.com/dados"
+
 # Exemplo quando já estiver no Render:
 # API_URL = "https://seu-app.onrender.com/dados"
+
+# A chave NUNCA fica escrita aqui no código — é lida da variável de
+# ambiente API_KEY, a mesma configurada no servidor. Isso evita que a
+# chave vá parar no GitHub junto com esse arquivo.
+API_KEY = os.environ.get("API_KEY")
 
 INTERVALO_SEGUNDOS = 10
 
@@ -45,14 +53,19 @@ def proxima_leitura():
 
 
 def enviar(dados):
+    headers = {"X-API-Key": API_KEY}
     try:
-        resposta = requests.post(API_URL, json=dados, timeout=10)
+        resposta = requests.post(API_URL, json=dados, headers=headers, timeout=10)
         print(f"Enviado {dados} -> status {resposta.status_code}")
     except requests.exceptions.RequestException as e:
         print(f"Erro ao enviar: {e}")
 
 
 if __name__ == "__main__":
+    if not API_KEY:
+        print("AVISO: variável de ambiente API_KEY não definida.")
+        print("Defina antes de rodar, ex (PowerShell): $env:API_KEY = \"sua-chave\"\n")
+
     print(f"Simulador rodando. Enviando para {API_URL} a cada {INTERVALO_SEGUNDOS}s.")
     print("Pressione Ctrl+C para parar.\n")
     try:

@@ -13,7 +13,7 @@ IMPORTANTE sobre o Render (tier free):
   (ex: Render Postgres free tier, ou Supabase).
 """
 
-from flask import Flask, request, jsonify, send_from_directory
+from flask import Flask, request, jsonify
 from flask_cors import CORS
 import sqlite3
 from datetime import datetime, timezone
@@ -23,6 +23,11 @@ app = Flask(__name__)
 CORS(app)  # permite que o site (em outro domínio) acesse essa API
 
 DB_PATH = os.path.join(os.path.dirname(__file__), "dados.db")
+
+# Chave secreta que o Arduino precisa enviar para poder gravar dados.
+# É lida de uma variável de ambiente (configurada no painel do Render),
+# NUNCA fica escrita no código nem sobe pro GitHub.
+API_KEY = os.environ.get("API_KEY")
 
 
 def get_conn():
@@ -58,6 +63,13 @@ def home():
 
 @app.route("/dados", methods=["POST"])
 def receber_dados():
+    # Confere a chave de API enviada pelo Arduino no header X-API-Key.
+    # Se a variável de ambiente API_KEY não estiver configurada no servidor,
+    # a rota fica bloqueada por segurança (fail-safe), em vez de aceitar tudo.
+    chave_enviada = request.headers.get("X-API-Key")
+    if not API_KEY or chave_enviada != API_KEY:
+        return jsonify({"erro": "não autorizado"}), 401
+
     payload = request.get_json(force=True, silent=True)
     if not payload:
         return jsonify({"erro": "JSON inválido ou ausente"}), 400
