@@ -27,7 +27,7 @@ API_URL = "https://bio-digestor-medidor.onrender.com/dados"
 # chave vá parar no GitHub junto com esse arquivo.
 API_KEY = os.environ.get("API_KEY")
 
-INTERVALO_SEGUNDOS = 60
+INTERVALO_SEGUNDOS = 900
 
 # valores iniciais, pra simular uma variação "realista" e não números
 # totalmente aleatórios a cada leitura
